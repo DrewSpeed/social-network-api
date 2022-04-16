@@ -1,3 +1,4 @@
+const res = require('express/lib/response');
 const { User } = require('../models');
 
 const userController = {
@@ -45,6 +46,32 @@ const userController = {
             res.json(userData);
         })
         .catch(err => res.status(400).json(err));
+    },
+    addFriend({ params }, res) {
+        User.findOneAndUpdate(
+            {_id: params.id},
+            {$push: {friends: params.friendId }},
+            {runValidators: true, new: true}
+        )
+        .then(userData => {
+        if(!userData){
+            res.status(404).json({ message: 'No user found with the id given!'});
+            return;
+        }
+        res.json(userData);
+        })
+        .catch(err => res.status(400).json(err));
+    },
+    deleteFriend({ params }, res) {
+        User.findOneAndUpdate({ _id: params.friendId }, { $pull: { friends: params.friendId } }, { runValidators: true })
+            .then(dbUserData => {
+                if (!dbUserData) {
+                    res.status(404).json({ message: 'No user found with that id!'});
+                    return;
+                }
+                res.json(dbUserData);
+            })
+            .catch(err => res.status(400).json(err));
     }
 }
 
